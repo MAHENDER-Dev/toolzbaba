@@ -1,0 +1,33 @@
+# Keeps this fork in step with Aditya3488/toolzbaba.
+# Every 30 minutes (or "Run workflow" on the Actions tab) it pulls new commits from the original repo and pushes them here.
+# Cloudflare builds and publishes the site itself from GitHub, so nothing here deploys.
+name: Sync from upstream
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
+
+      - name: Pull new commits from Aditya3488/toolzbaba
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch https://github.com/Aditya3488/toolzbaba.git master
+          if git merge-base --is-ancestor FETCH_HEAD HEAD; then
+            echo "Already up to date with upstream."
+          else
+            git merge --no-edit FETCH_HEAD -m "Merge upstream Aditya3488/toolzbaba"
+            git push origin HEAD:master
+          fi
